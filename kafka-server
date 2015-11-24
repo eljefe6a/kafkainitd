@@ -1,0 +1,94 @@
+#!/bin/bash
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Starts a Kafka Broker
+#
+# chkconfig: 35 85 15
+# description: Kafka Broker
+#
+### BEGIN INIT INFO
+# Provides:          kafka
+# Required-Start:    $local_fs $remote_fs $network $syslog zookeeper
+# Required-Stop:     $local_fs $remote_fs $network $syslog zookeeper
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Startup script for Kafka broker
+# Description:       Kafka is a high-throughput distributed messaging system.
+### END INIT INFO
+
+DAEMON_PATH=/usr/bin
+DAEMON_NAME=kafka
+
+PIDFILE=/var/run/kafka-broker.pid
+PATH=$PATH:$DAEMON_PATH
+PROPERTIES_FILE=/etc/kafka/server.properties
+START_SCRIPT=kafka-server-start
+STOP_SCRIPT=kafka-server-stop
+NAME="Kafka Broker"
+
+LOG_FILE=/var/log/kafka/kafka-server.out
+
+case "$1" in
+start)
+  echo "Starting $DAEMON_NAME";
+  PID=`$DAEMON_PATH/$START_SCRIPT $PROPERTIES_FILE > $LOG_FILE 2>&1 & echo $!`
+
+  if [ -z $PID ]; then
+      printf "%s\n" "$NAME failed to start"
+  else
+      echo $PID > $PIDFILE
+      printf "%s\n" "$NAME started"
+  fi
+;;
+status)
+        if [ -f $PIDFILE ]; then
+            PID=`cat $PIDFILE`
+            if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
+                printf "%s\n" "$NAME process dead but pidfile exists"
+            else
+                echo "$NAME running"
+            fi
+        else
+            printf "%s\n" "$NAME service not running"
+        fi
+;;
+stop)
+        printf "%-50s" "Stopping $NAME"
+            PID=`cat $PIDFILE`
+            cd $DAEMON_PATH
+        if [ -f $PIDFILE ]; then
+            $DAEMON_PATH/$STOP_SCRIPT 2>/dev/null
+            kill -HUP $PID
+            printf "%s\n" "$NAME stopped"
+            rm -f $PIDFILE
+        else
+            printf "%s\n" "$NAME pidfile not found"
+        fi
+;;
+
+restart)
+    $0 stop
+    sleep 2
+    $0 start
+;;
+
+*)
+        echo "Usage: $0 {status|start|stop|restart}"
+        exit 1
+esac
+
+exit 0
