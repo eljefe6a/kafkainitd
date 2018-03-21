@@ -35,7 +35,7 @@ DAEMON_NAME=kafka-rest
 
 PIDFILE=/var/run/kafka-rest.pid
 PATH=$PATH:$DAEMON_PATH
-PROPERTIES_FILE=
+PROPERTIES_FILE=/etc/kafka-rest/kafka-rest.properties
 START_SCRIPT=kafka-rest-start
 NAME="Kafka REST"
 
