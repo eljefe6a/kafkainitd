@@ -12,7 +12,7 @@ function restartAndCheck {
 
   if [[ $(sudo service $serviceName status) != $correctRunningStatus ]]; then
     echo "****$serviceName not running. Outputting log:****"
-    tail -n 40 $logFile
+    sudo tail -n 40 $logFile
   fi
 }
 
